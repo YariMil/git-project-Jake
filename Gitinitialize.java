@@ -102,7 +102,7 @@ public class GitInitialize {
 
 
         } catch (Exception e) {
-            System.out.println("There's an error");
+            System.out.println("There's an error in createBlob: " + e.getMessage());
         }
     }
 
@@ -112,19 +112,42 @@ public class GitInitialize {
 
             BufferedReader fileReader =
                     new BufferedReader(new FileReader(indexFile.toPath().toString()));
-            FileWriter fileWriter = new FileWriter(indexFile.toPath().toString());
-
-            if (fileReader.readLine() == null) {
-                fileWriter.write(hash + " " + filePath);
-            } else {
-                fileWriter.write("\n" + hash + " " + filePath);
+            StringBuilder indexString = new StringBuilder();
+            boolean replacedFile = false;
+            while (fileReader.ready()) {
+                String line = fileReader.readLine();
+                if (line.substring(line.indexOf(" ") + 1).equals(filePath)) {
+                    replacedFile = true;
+                    indexString.append(hash + " " + filePath);
+                } else {
+                    indexString.append(line);
+                }
+                if (fileReader.ready()) {
+                    indexString.append("\n");
+                }
             }
+            if (!replacedFile) {
+                // We did not replace a file so this file was never added to the index before
+                if (indexString.toString().equals("")) {
+                    indexString.append(hash + " " + filePath);
+                } else {
+                    indexString.append("\n" + hash + " " + filePath);
+                }
+
+            }
+            // if (fileReader.readLine() == null) {
+            // fileWriter.write(hash + " " + filePath);
+            // } else {
+            // fileWriter.write("\n" + hash + " " + filePath);
+            // }
+            FileWriter fileWriter = new FileWriter(indexFile.toPath().toString());
+            fileWriter.write(indexString.toString());
 
             fileReader.close();
             fileWriter.close();
 
         } catch (Exception e) {
-            System.out.println("There's an error");
+            System.out.println("There's an error: " + e.getMessage());
         }
     }
 }

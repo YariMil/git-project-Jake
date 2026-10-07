@@ -12,6 +12,12 @@ public class Verify {
             git.updateIndex("Verify.txt");
             git.createBlob("test/awesome.txt");
             git.updateIndex("test/awesome.txt");
+            git.createBlob("test/Hello.txt");
+            git.updateIndex("test/Hello.txt");
+            git.updateIndex("test/awesome.txt");
+            System.out.println("== EMPTY ==");
+            git.createBlob("empty.txt");
+            git.updateIndex("empty.txt");
         } catch (Exception e) {
             System.out.println("File error: " + e.getMessage());
         }
