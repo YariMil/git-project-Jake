@@ -7,7 +7,7 @@ public class Verify {
         // Recreating git should not reinitialize the repository
         git = new GitInitialize();
         try {
-            System.out.println("SHA-1 of Verify.txt is 566336e72a24c615f6c4f2f54a9e1267ee7a5da0");
+            System.out.println("SHA-1 of Verify.txt is 9a26e18fbc5b2435f4cabb1e91b6e780bb0d8e4d");
             git.createBlob("Verify.txt");
             git.updateIndex("Verify.txt");
             git.createBlob("test/awesome.txt");

@@ -11,49 +11,48 @@ import java.util.HexFormat;
 
 public class GitInitialize {
 
-    private File git;
-    private File objects;
-    private File index;
-    private File Head;
+    private File gitFolder;
+    private File objectsFolder;
+    private File indexFile;
+    private File headFile;
 
     public static void main(String[] args) {
 
-        GitInitialize newGit = new GitInitialize();
+        GitInitialize git = new GitInitialize();
 
         try {
             System.out.println(hashFile("Hello.txt"));
-            newGit.createBlob("Hello.txt");
-            newGit.updateIndex("Hello.txt");
+            git.createBlob("Hello.txt");
+            git.updateIndex("Hello.txt");
         } catch (Exception e) {
             System.out.println("oops");
         }
     }
 
     public GitInitialize() {
-
         instantiate();
     }
 
     public void instantiate() {
         try {
-            int count = 0;
-            git = new File("git/");
-            if (!git.mkdir()) {
-                count++;
+            int filesThatDidntHaveToBeRecreated = 0;
+            gitFolder = new File("git/");
+            if (!gitFolder.mkdir()) {
+                filesThatDidntHaveToBeRecreated++;
             }
-            objects = new File(git, "objects/");
-            if (!objects.mkdir()) {
-                count++;
+            objectsFolder = new File(gitFolder, "objects/");
+            if (!objectsFolder.mkdir()) {
+                filesThatDidntHaveToBeRecreated++;
             }
-            index = new File(git, "index");
-            if (!index.createNewFile()) {
-                count++;
+            indexFile = new File(gitFolder, "index");
+            if (!indexFile.createNewFile()) {
+                filesThatDidntHaveToBeRecreated++;
             }
-            Head = new File(git, "Head");
-            if (!Head.createNewFile()) {
-                count++;
+            headFile = new File(gitFolder, "Head");
+            if (!headFile.createNewFile()) {
+                filesThatDidntHaveToBeRecreated++;
             }
-            if (count == 4) {
+            if (filesThatDidntHaveToBeRecreated == 4) {
                 System.out.println("Git Repository Already Exists");
             } else {
                 System.out.println("Git Repository Created");
@@ -73,32 +72,32 @@ public class GitInitialize {
 
         byte[] fileBytes = Files.readAllBytes(path);
 
-        MessageDigest digest;
+        MessageDigest shaAlgorithm;
 
         try {
-            digest = MessageDigest.getInstance("SHA-1");
+            shaAlgorithm = MessageDigest.getInstance("SHA-1");
         } catch (NoSuchAlgorithmException e) {
             throw new IllegalStateException("SHA-1 is not available", e);
         }
 
-        byte[] hash = digest.digest(fileBytes);
+        byte[] hashBytes = shaAlgorithm.digest(fileBytes);
 
-        return HexFormat.of().formatHex(hash);
+        return HexFormat.of().formatHex(hashBytes);
     }
 
     public void createBlob(String filePath) throws IOException {
         try {
 
             String hash = hashFile(filePath);
-            File newFile = new File(objects, hash);
+            File newFile = new File(objectsFolder, hash);
             newFile.createNewFile();
 
             BufferedReader fileReader = new BufferedReader(new FileReader(filePath));
-            String readFile = fileReader.readLine();
+            String firstFileLine = fileReader.readLine();
             fileReader.close();
 
             FileWriter fileWriter = new FileWriter(newFile.toPath().toString());
-            fileWriter.write(readFile);
+            fileWriter.write(firstFileLine);
             fileWriter.close();
 
 
@@ -112,8 +111,8 @@ public class GitInitialize {
             String hash = hashFile(filePath);
 
             BufferedReader fileReader =
-                    new BufferedReader(new FileReader(index.toPath().toString()));
-            FileWriter fileWriter = new FileWriter(index.toPath().toString());
+                    new BufferedReader(new FileReader(indexFile.toPath().toString()));
+            FileWriter fileWriter = new FileWriter(indexFile.toPath().toString());
 
             if (fileReader.readLine() == null) {
                 fileWriter.write(hash + " " + filePath);
