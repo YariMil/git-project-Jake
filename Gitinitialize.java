@@ -93,16 +93,23 @@ public class GitInitialize {
             newFile.createNewFile();
 
             BufferedReader fileReader = new BufferedReader(new FileReader(filePath));
-            String firstFileLine = fileReader.readLine();
+            StringBuilder fileContents = new StringBuilder();
+            // Reading in the entirety of the file and adding in new lines if the file contents
+            // haven't ended.
+            while (fileReader.ready()) {
+                fileContents.append(fileReader.readLine());
+                if (fileReader.ready()) {
+                    fileContents.append("\n");
+                }
+            }
             fileReader.close();
-
             FileWriter fileWriter = new FileWriter(newFile.toPath().toString());
-            fileWriter.write(firstFileLine);
+            fileWriter.write(fileContents.toString());
             fileWriter.close();
 
 
         } catch (Exception e) {
-            System.out.println("There's an error");
+            System.out.println("There's an error in createBlob: " + e.getMessage());
         }
     }
 
@@ -112,19 +119,46 @@ public class GitInitialize {
 
             BufferedReader fileReader =
                     new BufferedReader(new FileReader(indexFile.toPath().toString()));
-            FileWriter fileWriter = new FileWriter(indexFile.toPath().toString());
-
-            if (fileReader.readLine() == null) {
-                fileWriter.write(hash + " " + filePath);
-            } else {
-                fileWriter.write("\n" + hash + " " + filePath);
+            StringBuilder indexString = new StringBuilder();
+            boolean replacedFile = false;
+            while (fileReader.ready()) {
+                String line = fileReader.readLine();
+                // For each line, we find the file path that is mapped on that line.
+                // If that file path is the same as the path we currently have
+                // We just rewrite the line
+                if (line.substring(line.indexOf(" ") + 1).equals(filePath)) {
+                    replacedFile = true;
+                    indexString.append(hash + " " + filePath);
+                } else {
+                    indexString.append(line);
+                }
+                if (fileReader.ready()) {
+                    indexString.append("\n");
+                }
             }
+            if (!replacedFile) {
+                // We did not replace a file so this file was never added to the index before
+                if (indexString.toString().equals("")) {
+                    indexString.append(hash + " " + filePath);
+                } else {
+                    indexString.append("\n" + hash + " " + filePath);
+                }
+
+            }
+            // if (fileReader.readLine() == null) {
+            // fileWriter.write(hash + " " + filePath);
+            // } else {
+            // fileWriter.write("\n" + hash + " " + filePath);
+            // }
+            // Contents of the new index file are now ready to be written in.
+            FileWriter fileWriter = new FileWriter(indexFile.toPath().toString());
+            fileWriter.write(indexString.toString());
 
             fileReader.close();
             fileWriter.close();
 
         } catch (Exception e) {
-            System.out.println("There's an error");
+            System.out.println("There's an error: " + e.getMessage());
         }
     }
 }
