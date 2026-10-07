@@ -18,6 +18,10 @@ public class Verify {
             System.out.println("== EMPTY ==");
             git.createBlob("empty.txt");
             git.updateIndex("empty.txt");
+            git.createBlob("Hello2.txt");
+            git.updateIndex("Hello2.txt");
+            git.createBlob("test/empty.txt");
+            git.updateIndex("test/empty.txt");
         } catch (Exception e) {
             System.out.println("File error: " + e.getMessage());
         }

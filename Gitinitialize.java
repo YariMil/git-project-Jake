@@ -93,13 +93,16 @@ public class GitInitialize {
             newFile.createNewFile();
 
             BufferedReader fileReader = new BufferedReader(new FileReader(filePath));
-            String firstFileLine = fileReader.readLine();
-            fileReader.close();
-            if (firstFileLine == null) {
-                firstFileLine = "";
+            StringBuilder fileContents = new StringBuilder();
+            while (fileReader.ready()) {
+                fileContents.append(fileReader.readLine());
+                if (fileReader.ready()) {
+                    fileContents.append("\n");
+                }
             }
+            fileReader.close();
             FileWriter fileWriter = new FileWriter(newFile.toPath().toString());
-            fileWriter.write(firstFileLine);
+            fileWriter.write(fileContents.toString());
             fileWriter.close();
 
 
