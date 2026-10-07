@@ -94,6 +94,8 @@ public class GitInitialize {
 
             BufferedReader fileReader = new BufferedReader(new FileReader(filePath));
             StringBuilder fileContents = new StringBuilder();
+            // Reading in the entirety of the file and adding in new lines if the file contents
+            // haven't ended.
             while (fileReader.ready()) {
                 fileContents.append(fileReader.readLine());
                 if (fileReader.ready()) {
@@ -121,6 +123,9 @@ public class GitInitialize {
             boolean replacedFile = false;
             while (fileReader.ready()) {
                 String line = fileReader.readLine();
+                // For each line, we find the file path that is mapped on that line.
+                // If that file path is the same as the path we currently have
+                // We just rewrite the line
                 if (line.substring(line.indexOf(" ") + 1).equals(filePath)) {
                     replacedFile = true;
                     indexString.append(hash + " " + filePath);
@@ -145,6 +150,7 @@ public class GitInitialize {
             // } else {
             // fileWriter.write("\n" + hash + " " + filePath);
             // }
+            // Contents of the new index file are now ready to be written in.
             FileWriter fileWriter = new FileWriter(indexFile.toPath().toString());
             fileWriter.write(indexString.toString());
 
