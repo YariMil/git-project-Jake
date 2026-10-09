@@ -1,4 +1,5 @@
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -7,6 +8,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HexFormat;
 
 public class GitInitialize {
@@ -126,9 +128,9 @@ public class GitInitialize {
                 // For each line, we find the file path that is mapped on that line.
                 // If that file path is the same as the path we currently have
                 // We just rewrite the line
-                if (line.substring(line.indexOf(" ") + 1).equals(filePath)) {
+                if (line.substring(line.indexOf(" ") + 1).equals("myProject/" + filePath)) {
                     replacedFile = true;
-                    indexString.append(hash + " " + filePath);
+                    indexString.append(hash + " myProject/" + filePath);
                 } else {
                     indexString.append(line);
                 }
@@ -139,18 +141,12 @@ public class GitInitialize {
             if (!replacedFile) {
                 // We did not replace a file so this file was never added to the index before
                 if (indexString.toString().equals("")) {
-                    indexString.append(hash + " " + filePath);
+                    indexString.append(hash + " myProject/" + filePath);
                 } else {
-                    indexString.append("\n" + hash + " " + filePath);
+                    indexString.append("\n" + hash + " myProject/" + filePath);
                 }
 
             }
-            // if (fileReader.readLine() == null) {
-            // fileWriter.write(hash + " " + filePath);
-            // } else {
-            // fileWriter.write("\n" + hash + " " + filePath);
-            // }
-            // Contents of the new index file are now ready to be written in.
             FileWriter fileWriter = new FileWriter(indexFile.toPath().toString());
             fileWriter.write(indexString.toString());
 
@@ -160,5 +156,55 @@ public class GitInitialize {
         } catch (Exception e) {
             System.out.println("There's an error: " + e.getMessage());
         }
+    }
+
+    public String createTree(File workingList, String dirPath) {
+        try {
+            BufferedReader fileReader = new BufferedReader(new FileReader(workingList));
+            ArrayList<String> fileList = new ArrayList<String>();
+            while (fileReader.ready()) {
+                String line = fileReader.readLine();
+                // Take the last slash we find because everything before that is the directory path
+                int lastSlashIndex = line.lastIndexOf("/");
+                // Taking the index of the space to see where the directory path begins.
+                int spaceIndex = line.indexOf(" ");
+                if (line.substring(spaceIndex + 1, lastSlashIndex).equals(dirPath)) {
+                    fileList.add(line);
+                }
+            }
+            fileReader.close();
+
+            File newTree = new File("git/objects/newTree");
+            newTree.createNewFile();
+            BufferedWriter fileWriter = new BufferedWriter(new FileWriter("git/objects/newTree"));
+            for (int i = 0; i < fileList.size(); i++) {
+                String filePath = fileList.get(i);
+                File fileFrompath = new File(filePath);
+                // Take the last slash we find because everything after that is the name
+                int lastSlashIndex = filePath.lastIndexOf("/");
+                // Taking the index of the space to see where the directory path begins.
+                int spaceIndex = filePath.indexOf(" ");
+                if (fileFrompath.isDirectory()) {
+                    fileWriter.write("tree " + filePath.substring(0, spaceIndex) + " "
+                            + filePath.substring(lastSlashIndex + 1));
+                } else {
+                    fileWriter.write("blob " + filePath.substring(0, spaceIndex) + " "
+                            + filePath.substring(lastSlashIndex + 1));
+                }
+                if (i < fileList.size() - 1) {
+                    // This is the last file
+                    fileWriter.write("\n");
+                }
+            }
+            fileWriter.close();
+            // Rehashing the tree now and changing name
+            String hash = hashFile("git/objects/newTree");
+            newTree.renameTo(new File("git/objects/" + hash));
+            return hash;
+        } catch (Exception e) {
+            System.out.println("File error: " + e.getMessage());
+        }
+        return "";
+
     }
 }
