@@ -9,6 +9,8 @@ import java.security.NoSuchAlgorithmException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HexFormat;
 
 public class GitInitialize {
@@ -158,6 +160,80 @@ public class GitInitialize {
         }
     }
 
+    public String findLeafMostDirectory(File workingList) throws IOException {
+        BufferedReader fileReader = new BufferedReader(new FileReader(workingList));
+        String leafMost = "";
+        while (fileReader.ready()) {
+            String listLine = fileReader.readLine();
+            int spaceIndex = listLine.lastIndexOf(" ");
+            int lastSlashLine = listLine.lastIndexOf("/");
+            if (lastSlashLine != -1) {
+                if (listLine.substring(spaceIndex + 1, lastSlashLine).length() >= leafMost
+                        .length()) {
+                    leafMost = listLine.substring(spaceIndex + 1, lastSlashLine);
+                }
+            }
+            // If the lastSlashLine == -1 file is located inside the root directory
+        }
+        fileReader.close();
+        return leafMost;
+    }
+
+    public void rewriteWorkingList(File workingList, String treehash, String dir) throws IOException {
+        // treeWritten will be made true when we overwrite one line with the tree hash
+        // to ensure that we don't duplicate entries.
+        boolean treeWritten = false;
+        BufferedReader fileReader = new BufferedReader(new FileReader(workingList));
+        BufferedWriter fileWriter = new BufferedWriter(new FileWriter(workingList));
+        while (fileReader.ready()) {
+            String line = fileReader.readLine();
+            int spaceIndex = line.lastIndexOf(" ");
+            int slashIndex = line.lastIndexOf("/");
+            if (line.substring(spaceIndex + 1, slashIndex).equals(dir) && !treeWritten) {
+                treeWritten = true;
+            } else if (!line.substring(spaceIndex + 1, slashIndex).equals(dir)) {
+                
+            }
+        }
+    }
+
+    public void createTreesFromIndex() {
+        try {
+            File workingList = createWorkingTree(indexFile);
+            String leafMost = findLeafMostDirectory(workingList);
+            String treeHash = createTree(workingList, leafMost);
+
+        } catch (Exception e) {
+            System.out.println("File error: " + e.getMessage());
+        }
+    }
+
+    public File createWorkingTree(File fileList) throws IOException {
+        BufferedReader fileReader = new BufferedReader(new FileReader(fileList));
+        File workingList = new File("workingList");
+        BufferedWriter fileWriter = new BufferedWriter(new FileWriter(workingList));
+        // Add the lines into a list for later
+        ArrayList<String> lines = new ArrayList<String>();
+        while (fileReader.ready()) {
+            String line = fileReader.readLine();
+            lines.add(line);
+            // Creating a comparator to compare by path. If you're wondering where I got this from:
+            // https://www.baeldung.com/java-comparator-comparable
+            Comparator<String> byPath = (String s1, String s2) -> s1.substring(s1.indexOf(" ") + 1)
+                    .compareTo(s2.substring(s2.indexOf(" ") + 1));
+            Collections.sort(lines, byPath);
+        }
+        for (int i = 0; i < lines.size(); i++) {
+            fileWriter.write("blob " + lines.get(i));
+            if (i != lines.size() - 1) {
+                fileWriter.write("\n");
+            }
+        }
+        fileReader.close();
+        fileWriter.close();
+        return workingList;
+    }
+
     public String createTree(File workingList, String dirPath) {
         try {
             BufferedReader fileReader = new BufferedReader(new FileReader(workingList));
@@ -185,10 +261,10 @@ public class GitInitialize {
                 // Taking the index of the space to see where the directory path begins.
                 int spaceIndex = filePath.indexOf(" ");
                 if (fileFrompath.isDirectory()) {
-                    fileWriter.write("tree " + filePath.substring(0, spaceIndex) + " "
+                    fileWriter.write(filePath.substring(0, spaceIndex) + " "
                             + filePath.substring(lastSlashIndex + 1));
                 } else {
-                    fileWriter.write("blob " + filePath.substring(0, spaceIndex) + " "
+                    fileWriter.write(filePath.substring(0, spaceIndex) + " "
                             + filePath.substring(lastSlashIndex + 1));
                 }
                 if (i < fileList.size() - 1) {
