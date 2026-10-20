@@ -20,19 +20,6 @@ public class GitInitialize {
     private File indexFile;
     private File headFile;
 
-    public static void main(String[] args) {
-
-        GitInitialize git = new GitInitialize();
-
-        try {
-            System.out.println(hashFile("Hello.txt"));
-            git.createBlob("Hello.txt");
-            git.updateIndex("Hello.txt");
-        } catch (Exception e) {
-            System.out.println("oops");
-        }
-    }
-
     public GitInitialize() {
         instantiate();
     }
@@ -161,34 +148,31 @@ public class GitInitialize {
 
     public String findLeafMostDirectory(File workingList) throws IOException {
         BufferedReader fileReader = new BufferedReader(new FileReader(workingList));
-        while (fileReader.ready()) {
-            String listLine = fileReader.readLine();
-            if (listLine.indexOf("tree") == -1) {
-                // Blob file
-                int spaceIndex = listLine.lastIndexOf(" ");
-                int lastSlashLine = listLine.lastIndexOf("/");
-                fileReader.close();
-                return listLine.substring(spaceIndex + 1, lastSlashLine);
-            }
-        }
+        // while (fileReader.ready()) {
         // String listLine = fileReader.readLine();
+        // if (listLine.indexOf("tree") == -1) {
+        // // Blob file
         // int spaceIndex = listLine.lastIndexOf(" ");
         // int lastSlashLine = listLine.lastIndexOf("/");
-        // String leafMost = listLine.substring(spaceIndex + 1, lastSlashLine);
-        // while (fileReader.ready()) {
-        // listLine = fileReader.readLine();
-        // spaceIndex = listLine.lastIndexOf(" ");
-        // lastSlashLine = listLine.lastIndexOf("/");
-        // if (lastSlashLine != -1) {
-        // if (listLine.substring(spaceIndex + 1, lastSlashLine).length() >= leafMost
-        // .length()) {
-        // leafMost = listLine.substring(spaceIndex + 1, lastSlashLine);
+        // fileReader.close();
+        // return listLine.substring(spaceIndex + 1, lastSlashLine);
         // }
         // }
-        // If lastSlashLine is -1, the only directory remaining is the root directory
-        // }
+        String leafMost = "";
+        while (fileReader.ready()) {
+            String listLine = fileReader.readLine();
+            int spaceIndex = listLine.lastIndexOf(" ");
+            int lastSlashLine = listLine.lastIndexOf("/");
+            if (lastSlashLine != -1) {
+                if (listLine.substring(spaceIndex + 1, lastSlashLine).length() >= leafMost
+                        .length()) {
+                    leafMost = listLine.substring(spaceIndex + 1, lastSlashLine);
+                }
+            }
+            // If lastSlashLine is -1, the only directory remaining is the root directory
+        }
         fileReader.close();
-        return "";
+        return leafMost;
     }
 
     public void rewriteWorkingList(File workingList, String treehash, String dir) throws IOException {
@@ -216,9 +200,10 @@ public class GitInitialize {
 
     public String createTreesFromIndex() {
         try {
-            File workingList = createWorkingTree(indexFile);
+            File workingList = createWorkingList(indexFile);
             String leafMost = findLeafMostDirectory(workingList);
             while (leafMost != "") {
+                System.out.println(leafMost);
                 String treeHash = createTree(workingList, leafMost);
                 rewriteWorkingList(workingList, treeHash, leafMost);
                 leafMost = findLeafMostDirectory(workingList);
@@ -232,7 +217,7 @@ public class GitInitialize {
         return "";
     }
 
-    public File createWorkingTree(File fileList) throws IOException {
+    public File createWorkingList(File fileList) throws IOException {
         BufferedReader fileReader = new BufferedReader(new FileReader(fileList));
         File workingList = new File("workingList");
         BufferedWriter fileWriter = new BufferedWriter(new FileWriter(workingList));
