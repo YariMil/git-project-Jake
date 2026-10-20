@@ -203,10 +203,11 @@ public class GitInitialize {
             File workingList = createWorkingList(indexFile);
             String leafMost = findLeafMostDirectory(workingList);
             while (leafMost != "") {
-                System.out.println(leafMost);
+
                 String treeHash = createTree(workingList, leafMost);
                 rewriteWorkingList(workingList, treeHash, leafMost);
                 leafMost = findLeafMostDirectory(workingList);
+
             }
             String rootHash = hashFile(workingList.getAbsolutePath());
             workingList.delete();

@@ -28,6 +28,8 @@ public class Verify {
             git.updateIndex("test/whoa/anotherTest.txt");
             git.createBlob("test/test2/wow.txt");
             git.updateIndex("test/test2/wow.txt");
+            git.createBlob("test/test3/test4/hey.txt");
+            git.updateIndex("test/test3/test4/hey.txt");
             // System.out.println("== TESTING CREATING TREES ==");
             File index = new File("git/index");
             // System.out.println(git.createTree(index, "myProject/test"));
