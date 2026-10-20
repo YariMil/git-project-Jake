@@ -161,21 +161,34 @@ public class GitInitialize {
 
     public String findLeafMostDirectory(File workingList) throws IOException {
         BufferedReader fileReader = new BufferedReader(new FileReader(workingList));
-        String leafMost = "";
         while (fileReader.ready()) {
             String listLine = fileReader.readLine();
-            int spaceIndex = listLine.lastIndexOf(" ");
-            int lastSlashLine = listLine.lastIndexOf("/");
-            if (lastSlashLine != -1) {
-                if (listLine.substring(spaceIndex + 1, lastSlashLine).length() >= leafMost
-                        .length()) {
-                    leafMost = listLine.substring(spaceIndex + 1, lastSlashLine);
-                }
+            if (listLine.indexOf("tree") == -1) {
+                // Blob file
+                int spaceIndex = listLine.lastIndexOf(" ");
+                int lastSlashLine = listLine.lastIndexOf("/");
+                fileReader.close();
+                return listLine.substring(spaceIndex + 1, lastSlashLine);
             }
-            // If the lastSlashLine == -1 file is located inside the root directory
         }
+        // String listLine = fileReader.readLine();
+        // int spaceIndex = listLine.lastIndexOf(" ");
+        // int lastSlashLine = listLine.lastIndexOf("/");
+        // String leafMost = listLine.substring(spaceIndex + 1, lastSlashLine);
+        // while (fileReader.ready()) {
+        // listLine = fileReader.readLine();
+        // spaceIndex = listLine.lastIndexOf(" ");
+        // lastSlashLine = listLine.lastIndexOf("/");
+        // if (lastSlashLine != -1) {
+        // if (listLine.substring(spaceIndex + 1, lastSlashLine).length() >= leafMost
+        // .length()) {
+        // leafMost = listLine.substring(spaceIndex + 1, lastSlashLine);
+        // }
+        // }
+        // If lastSlashLine is -1, the only directory remaining is the root directory
+        // }
         fileReader.close();
-        return leafMost;
+        return "";
     }
 
     public void rewriteWorkingList(File workingList, String treehash, String dir) throws IOException {
@@ -231,7 +244,7 @@ public class GitInitialize {
             // Creating a comparator to compare by path. If you're wondering where I got
             // this from:
             // https://www.baeldung.com/java-comparator-comparable
-            Comparator<String> byPath = (String s1, String s2) -> s1.substring(s1.indexOf(" ") + 1)
+            Comparator<String> byPath = (String s1, String s2) -> -s1.substring(s1.indexOf(" ") + 1)
                     .compareTo(s2.substring(s2.indexOf(" ") + 1));
             Collections.sort(lines, byPath);
         }
