@@ -24,10 +24,17 @@ public class Verify {
             git.updateIndex("Hello2.txt");
             git.createBlob("test/empty.txt");
             git.updateIndex("test/empty.txt");
-
-            System.out.println("== TESTING CREATING TREES ==");
+            git.createBlob("test/whoa/anotherTest.txt");
+            git.updateIndex("test/whoa/anotherTest.txt");
+            git.createBlob("test/test2/wow.txt");
+            git.updateIndex("test/test2/wow.txt");
+            git.createBlob("test/test3/test4/hey.txt");
+            git.updateIndex("test/test3/test4/hey.txt");
+            // System.out.println("== TESTING CREATING TREES ==");
             File index = new File("git/index");
-            System.out.println(git.createTree(index, "myProject/test"));
+            // System.out.println(git.createTree(index, "myProject/test"));
+            // git.createWorkingTree(index);
+            System.out.println(git.createTreesFromIndex());
         } catch (Exception e) {
             System.out.println("File error: " + e.getMessage());
         }
